@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Scheme1",
+        "tuples_limit" : 1000,
+        "structure" : {
+            "table1": ["column1", "column2", "column3", "column4"],
+            "table2": ["column1", "column2"] 
+        }   
+    }
+]

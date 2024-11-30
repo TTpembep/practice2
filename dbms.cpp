@@ -2,60 +2,63 @@
 #include "syntaxCheck.h"
 #include "actions.h"
 
-string dbms(string message){
+string dbms(string query){
     Schema schema;
     dbInit(schema);   //Функция создания и проверки наличия БД
     cout << "Database ready. ";
-    while (true){
-        string query;
-        SQLQuery parsedQuery;
-        cout << "Waiting for query: ";
-        do {
-            //getline(cin, query);    //Проверка синтаксиса команды
-            query = message;
-            parsedQuery = syntaxCheck(query);
-            if (!parsedQuery.isRight) {
-            cout << "Command is not defined. Try again: ";
-            }
-            } while (!parsedQuery.isRight);
-        if (parsedQuery.action == "INSERT"){    //Вызов функции вставки
-            if (isUnlocked(schema.name, parsedQuery.tableName)){    //Проверка что таблица доступна
-                lock(schema.name,parsedQuery.tableName);
-                insertCSV(schema, parsedQuery);
-                unlock(schema.name,parsedQuery.tableName);
-            }
-        }if (parsedQuery.action == "DELETE"){   //Вызов функции удаления
-            if (isUnlocked(schema.name, parsedQuery.tableName)){
-                lock(schema.name,parsedQuery.tableName);
-                deleteFromCSV(schema, parsedQuery);
-                unlock(schema.name,parsedQuery.tableName);
-            }
-        }if (parsedQuery.action == "SELECT"){   //Вызов функции выборки
-            Node* curTab = parsedQuery.tables->head;
-            bool unlockTrigger = true;
-            while (curTab != nullptr){  //Проверка блокировки двух таблиц
-                unlockTrigger = isUnlocked(schema.name, curTab->data);
-                curTab = curTab->next;
-                if (!unlockTrigger) break;
-            }
-            if (unlockTrigger){ 
-                curTab = parsedQuery.tables->head;
-                while (curTab != nullptr){  //Блокировка двух таблиц
-                    lock(schema.name, curTab->data);
-                    curTab = curTab->next;
-                }
-                selectTables(schema, parsedQuery);
-                curTab = parsedQuery.tables->head;
-                while (curTab != nullptr){  //Разблокировка двух таблиц
-                    unlock(schema.name, curTab->data);
-                    curTab = curTab->next;
-                }
-            }
-        }if (parsedQuery.action == "EXIT"){ //Выход из программы
-            return 0;
+    SQLQuery parsedQuery;
+    parsedQuery = syntaxCheck(query);
+    if (!parsedQuery.isRight) {
+        parsedQuery.message = "Command is not defined. Try again. ";
+        //return parsedQuery.message;
+    }
+    if (parsedQuery.action == "INSERT"){    //Вызов функции вставки
+        if (isUnlocked(schema.name, parsedQuery.tableName)){    //Проверка что таблица доступна
+            lock(schema.name,parsedQuery.tableName);
+            insertCSV(schema, parsedQuery);
+            unlock(schema.name,parsedQuery.tableName);
+        }else{  //Отправка клиенту сообщение о не доступности таблицы
+            parsedQuery.message = "The table is not avaible now. Try again later. ";
         }
-    }return 0;
+        //return parsedQuery.message;
+    }if (parsedQuery.action == "DELETE"){   //Вызов функции удаления
+        if (isUnlocked(schema.name, parsedQuery.tableName)){
+            lock(schema.name,parsedQuery.tableName);
+            deleteFromCSV(schema, parsedQuery);
+            unlock(schema.name,parsedQuery.tableName);
+        }else{
+            parsedQuery.message = "The table is not avaible now. Try again later. ";
+        }
+        //return parsedQuery.message;
+    }if (parsedQuery.action == "SELECT"){   //Вызов функции выборки
+        Node* curTab = parsedQuery.tables->head;
+        bool unlockTrigger = true;
+        while (curTab != nullptr){  //Проверка блокировки двух таблиц
+            unlockTrigger = isUnlocked(schema.name, curTab->data);
+            curTab = curTab->next;
+            if (!unlockTrigger) break;
+        }
+        if (unlockTrigger){ 
+            curTab = parsedQuery.tables->head;
+            while (curTab != nullptr){  //Блокировка двух таблиц
+                lock(schema.name, curTab->data);
+                curTab = curTab->next;
+            }
+            selectTables(schema, parsedQuery);
+            curTab = parsedQuery.tables->head;
+            while (curTab != nullptr){  //Разблокировка двух таблиц
+                unlock(schema.name, curTab->data);
+                curTab = curTab->next;
+            }
+        }else{
+            parsedQuery.message = "The table is not avaible now. Try again later. ";
+        }
+        //return parsedQuery.message;
+    }
+    return parsedQuery.message;
+    //return "This is fatal logical error message";
 }
+
 /*
 INSERT INTO table1 VALUES ('somedata', '12345', 'hello', 'melon')
 INSERT INTO table1 VALUES ('chicken', 'world', '123', 'peace')

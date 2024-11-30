@@ -11,7 +11,7 @@ bool isUnlocked(const string& schemaName, const string& tableName){
     if (lockStatus == "0"){
         return 1;
     }else {
-        cout << "The table is not avaible now. Try again later. " << endl;
+        //cout << "The table is not avaible now. Try again later. " << endl;
         return 0;
     }
 }
@@ -54,7 +54,7 @@ int getRowCount(const string& filePath) {
     infile.close();
     return count;
 }
-void insertCSV(const Schema& schema, const SQLQuery& query) {
+void insertCSV(const Schema& schema, SQLQuery query) {
     int primaryKey = getPrimaryKey(schema.name+"/"+query.tableName+"/"+query.tableName);
     int fileCount= 1;
     string filePath = schema.name+"/"+query.tableName+"/"+to_string(fileCount)+".csv";
@@ -67,7 +67,7 @@ void insertCSV(const Schema& schema, const SQLQuery& query) {
     }
     ifstream fin(filePath);  
     if(!fin.is_open()) {    
-        cout << "File "+filePath+" not found. " <<endl;
+        query.message = "File " + filePath + " not found. ";
         return;
     };
     int columnCount =0;
@@ -79,7 +79,7 @@ void insertCSV(const Schema& schema, const SQLQuery& query) {
     }
     for (Node * current = query.values->head;current!=nullptr;current=current->next,columnCount--);
     if (columnCount!=1) {
-        cout << "Insert error. Wrong amount of arguments. " << endl;
+        query.message = "Insert error. Wrong amount of arguments. ";
         return;
     }
     //ios::app: Это флаг, который указывает, что файл должен быть открыт в режиме добавления (append mode).
@@ -97,9 +97,9 @@ void insertCSV(const Schema& schema, const SQLQuery& query) {
         outfile << endl;    //Закрываем файл
         outfile.close();    //Обновляем первичный ключ в файле
         updatePrimaryKey(schema.name+"/"+query.tableName+"/"+query.tableName, primaryKey + 1);
-        cout << "Database updated succesfully. Path: " << filePath << endl;
+        query.message = "Database updated succesfully. Path: " + filePath;
     } else {
-        cout << "An error occured when opening file " << filePath << endl;
+        query.message = "An error occured when opening file " + filePath;
     }
 }
 
@@ -238,7 +238,7 @@ bool isConditionTrue(const string& row, const string& columnNames, const string&
     delete tokens;
     return false;
 }
-void deleteFromCSV(const Schema& schema, const SQLQuery& query){
+void deleteFromCSV(const Schema& schema, SQLQuery query){
     openedSchemeName = schema.name;
     openedTableName = query.tableName;
     fileCount=1;
@@ -260,10 +260,10 @@ void deleteFromCSV(const Schema& schema, const SQLQuery& query){
             outfile.close();
             remove(filePath.c_str());  //Удаляем прошлый основной файл
             rename((filePath + ".tmp").c_str(), filePath.c_str());  //Переименовываем временный в основной
-            if (isChanged)cout << "Database updated succesfully. Path: " << filePath << endl;
-            else cout << "Nothing has changed. " << endl;
+            if (isChanged) query.message = "Database updated succesfully. Path: " + filePath;
+            else query.message = "Nothing has changed. ";
         }else {
-            cout << "An error occured when opening file " << filePath << endl;
+            query.message = "An error occured when opening file " + filePath;
         }
         fileCount++;    //Если файлов несколько переходит к следующему
         filePath = schema.name+"/"+query.tableName+"/" +to_string(fileCount)+ ".csv";
@@ -341,7 +341,7 @@ void selectTables(const Schema& schema, SQLQuery query){
                         tmpfile << superPrintFunc(row, columnNames, curCol->data) << endl;
                     }
                 }   infile.close();
-            }else {cout << "An error occured when opening file " << filePath << endl;}
+            }else {query.message = "An error occured when opening file " + filePath;}
         
             fileCount++;    //Если файлов несколько переходит к следующему
             filePath = schema.name+"/"+query.tableName+"/" +to_string(fileCount)+ ".csv";
@@ -354,24 +354,26 @@ void selectTables(const Schema& schema, SQLQuery query){
     }
     remove(tmPath.c_str()); //Удаление временного файла
     ifstream file(iterPath);    //Вывод итерационного файла в консоль
-        string result;
-        getline(file,result);
+    string result;
+    getline(file,result);
+    stringstream ss (result);
+    string temp;
+    string msg; //Временная переменная сообщения клиенту
+    while (getline(ss, temp, ',')){
+        msg += temp + " ";
+        getline(ss, temp, ',');
+        msg += temp + "\t";
+    }msg += "\n";
+    while (getline(file, result)){
         stringstream ss (result);
         string temp;
         while (getline(ss, temp, ',')){
-            cout << temp << " ";
+            msg += "  " + temp + "      ";
             getline(ss, temp, ',');
-            cout << temp << "\t";
-        }cout << endl;
-        while (getline(file, result)){
-            stringstream ss (result);
-            string temp;
-            while (getline(ss, temp, ',')){
-                cout << "  " << temp << "      ";
-                getline(ss, temp, ',');
-                cout << temp << "\t";
-            }cout << endl;
-        }
-        file.close();
+            msg += temp + "\t";
+        }msg += "\n";
+    }
+    file.close();
     remove(iterPath.c_str());   //Удаление итерационного файла
+    query.message = msg;
 }

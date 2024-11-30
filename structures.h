@@ -108,6 +108,8 @@ struct SQLQuery {
     fList* tables;  //Запись таблиц SELECT
     fList* columns; //Запись колонок SELECT
     bool isRight;   //Проверка синтаксиса
+
+    string message; //Запись сообщения для отправки клиенту
 };
 
 #endif

@@ -26,7 +26,7 @@ int main() {
     char buff[1024];
     bool isDisconnect = false;
     while (!isDisconnect) {
-        cout << "Enter query" << endl;
+        cout << "Enter query: " << endl;
         getline(cin, buffer);
         if (buffer == "disconnect") {
             isDisconnect = true;

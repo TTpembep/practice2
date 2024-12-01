@@ -54,7 +54,7 @@ int getRowCount(const string& filePath) {
     infile.close();
     return count;
 }
-void insertCSV(const Schema& schema, SQLQuery query) {
+void insertCSV(const Schema& schema, SQLQuery& query) {
     int primaryKey = getPrimaryKey(schema.name+"/"+query.tableName+"/"+query.tableName);
     int fileCount= 1;
     string filePath = schema.name+"/"+query.tableName+"/"+to_string(fileCount)+".csv";
@@ -101,6 +101,7 @@ void insertCSV(const Schema& schema, SQLQuery query) {
     } else {
         query.message = "An error occured when opening file " + filePath;
     }
+    return;
 }
 
 string openedSchemeName;    //Отслеживание текущей схемы 
@@ -238,7 +239,7 @@ bool isConditionTrue(const string& row, const string& columnNames, const string&
     delete tokens;
     return false;
 }
-void deleteFromCSV(const Schema& schema, SQLQuery query){
+void deleteFromCSV(const Schema& schema, SQLQuery& query){
     openedSchemeName = schema.name;
     openedTableName = query.tableName;
     fileCount=1;
@@ -269,6 +270,7 @@ void deleteFromCSV(const Schema& schema, SQLQuery query){
         filePath = schema.name+"/"+query.tableName+"/" +to_string(fileCount)+ ".csv";
         infile.open(filePath);
     }
+    return;
 }
 
 string superPrintFunc(const string& row, const string& columnNames, const string& line) {
@@ -299,7 +301,7 @@ string superPrintFunc(const string& row, const string& columnNames, const string
     delete tokens;
     return curPk + "," + curVal;
 }
-void selectTables(const Schema& schema, SQLQuery query){
+void selectTables(const Schema& schema, SQLQuery& query){
     openedSchemeName = schema.name;
     string tmPath = schema.name+"/"+"tmp.csv";
     string iterPath = schema.name+"/"+"iter.csv";
@@ -376,4 +378,5 @@ void selectTables(const Schema& schema, SQLQuery query){
     file.close();
     remove(iterPath.c_str());   //Удаление итерационного файла
     query.message = msg;
+    return;
 }

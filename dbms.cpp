@@ -5,12 +5,12 @@
 string dbms(string query){
     Schema schema;
     dbInit(schema);   //Функция создания и проверки наличия БД
-    cout << "Database ready. ";
+    cout << "Database ready. \n";
     SQLQuery parsedQuery;
     parsedQuery = syntaxCheck(query);
     if (!parsedQuery.isRight) {
         parsedQuery.message = "Command is not defined. Try again. ";
-        //return parsedQuery.message;
+        return parsedQuery.message;
     }
     if (parsedQuery.action == "INSERT"){    //Вызов функции вставки
         if (isUnlocked(schema.name, parsedQuery.tableName)){    //Проверка что таблица доступна
@@ -20,7 +20,7 @@ string dbms(string query){
         }else{  //Отправка клиенту сообщение о не доступности таблицы
             parsedQuery.message = "The table is not avaible now. Try again later. ";
         }
-        //return parsedQuery.message;
+        return parsedQuery.message;
     }if (parsedQuery.action == "DELETE"){   //Вызов функции удаления
         if (isUnlocked(schema.name, parsedQuery.tableName)){
             lock(schema.name,parsedQuery.tableName);
@@ -29,7 +29,7 @@ string dbms(string query){
         }else{
             parsedQuery.message = "The table is not avaible now. Try again later. ";
         }
-        //return parsedQuery.message;
+        return parsedQuery.message;
     }if (parsedQuery.action == "SELECT"){   //Вызов функции выборки
         Node* curTab = parsedQuery.tables->head;
         bool unlockTrigger = true;
@@ -53,10 +53,10 @@ string dbms(string query){
         }else{
             parsedQuery.message = "The table is not avaible now. Try again later. ";
         }
-        //return parsedQuery.message;
+        return parsedQuery.message;
     }
-    return parsedQuery.message;
-    //return "This is fatal logical error message";
+    //return parsedQuery.message;
+    return "This is fatal logical error message";
 }
 
 /*

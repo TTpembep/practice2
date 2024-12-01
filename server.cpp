@@ -65,6 +65,9 @@ void startServer() {
         }
         cout << "Client[" << clientAddress.sin_addr.s_addr << "] was connected" << endl;
         thread( requestProcessing, clientSocket, clientAddress).detach();
+        string debugServerStopper; //Для остановки работы сервера
+        getline(cin, debugServerStopper);
+        if (debugServerStopper == "-1") { break; }
     }
     close(server);
 }

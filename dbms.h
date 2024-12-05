@@ -5,6 +5,6 @@
 #include "syntaxCheck.h"
 #include "actions.h"
 
-string dbms(string message);
+string dbms(string message, Schema schema);
 
 #endif

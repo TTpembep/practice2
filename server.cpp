@@ -7,7 +7,10 @@
 #include <arpa/inet.h>
 #include "ip.h"
 #include "dbms.h"
+#include "DBinit.h"
+#include "structures.h"
 
+Schema schema;  //Глобальная переменная для обработки бд
 void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress) {
     mutex userMutex;
     char receive[1024] = {};
@@ -26,8 +29,7 @@ void requestProcessing(const int clientSocket, const sockaddr_in& clientAddress)
             isExit = true;
             continue;
         }
-        //string result = userQuery(receive ,structure);
-        string result = dbms(receive);
+        string result = dbms(receive, schema);
         send(clientSocket, result.c_str(), result.size(), 0);
     }
     close(clientSocket);
@@ -74,19 +76,8 @@ void startServer() {
 
 
 int main() {
-    /*string strcrt = "strktr.json";
-    json structureJSON;
-    try{
-        ifstream jsonFile (strcrt);
-        if (!jsonFile.is_open()) throw runtime_error("The structure file does not exist");
-        structureJSON = json::parse(jsonFile);
-        jsonFile.close();
-        makeStructure(structureJSON);
-    }
-    catch(exception& ex) {
-        cout << ex.what() << endl;
-        return -1;
-    }*/
+    dbInit(schema);   //Функция создания и проверки наличия БД
+    cout << "Database ready. \n";
     startServer();
     return 0;
 }

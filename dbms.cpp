@@ -2,10 +2,8 @@
 #include "syntaxCheck.h"
 #include "actions.h"
 
-string dbms(string query){
-    Schema schema;
-    dbInit(schema);   //Функция создания и проверки наличия БД
-    cout << "Database ready. \n";
+string dbms(string query, Schema schema){
+    cout << "action log+\n";
     SQLQuery parsedQuery;
     parsedQuery = syntaxCheck(query);
     if (!parsedQuery.isRight) {
